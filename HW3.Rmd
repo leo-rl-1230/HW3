@@ -1,0 +1,135 @@
+---
+title: "HW3"
+author: "Leonardo Robles-Lara (lr34388)"
+date: "2024-02-07"
+output: 
+  html_document:
+---
+
+```{r setup, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+library(knitr)
+creatinine <- read_csv("/Users/leo.rl/Downloads/creatinine.csv")
+milk <- read_csv("/Users/leo.rl/Downloads/milk.csv")
+covid <- read_csv("/Users/leo.rl/Downloads/covid.csv")
+marketmodel <- read_csv("/Users/leo.rl/Downloads/marketmodel.csv")
+```
+
+
+# Problem 1
+
+```{r}
+creatinine_model = lm(creatclear ~ age, data=creatinine)
+coef(creatinine_model)
+```
+
+A) 
+This can be discovered by using the values given to us by the linear model. The model gives us two values represented by the intercept and age values which when placed into a formula like (y = mx + b) where age is m, x is the age chosen and b is the intercept we can figure out what the projected creatinine levels should be for any given age on average. If we use the intercept value and subtract the age value while multiplying it by the age of the variable which in this case is 55 we can discover that the creatinine level of a 55-year-old is around `r round(147.813-0.619*55, digits = 3)` mL/M.
+
+B)
+Since we have a formula previously discussed in part A we can use it once again to determine what the rate of change is with age. Since the m value that multiplies into the x variable is given as -0.620 we can make the conclusion that as one ages, for every year the average person ages, the number of creatinine levels will go down 0.620 mL/M.  
+
+C) 
+The best way to determine this is to use the equation and compare the given information with the average to figure out which of the subjects is the highest above the average creatinine levels. When looking at the averages for each age we can see that the average creatinine levels for a 40 year old are `r round(147.813-0.619*40, digits = 3)` mL/M while they are at `r round(147.813-0.619*60, digits = 3)` for a 60 year old. We can then compare how far above or below the average and when doing that we can see that the 40 year old is `r 135 - round(147.813-0.619*40, digits = 3)` mL/M higher than the average while the 60 year old is only `r 112 - round(147.813-0.619*60, digits = 3)` mL/M higher than the average making the 40 year old healthier in terms of creatinine levels.
+
+
+# Problem 2
+
+A beta in the stock world is a value which represents the risk behind that of each individual stock when compared to the market as a whole. The closer the number is to one the more the stock will correlate directly tio the market at large, if the number is greater than 1 it will be more reactive than the market and less reactive when less then 1. If the number is 0 then it has little to no reaction in relation to the market. This number can be positive or negative with any number below zero equating to the stock having an opposite reaction compared to the market as a whole. This understanding allows for a better interpretation of how we can use those beta values to correlate them to price increases and how much each value of each company's stocks would increase. When looking at the formula given for the regression model: Y^(k) = β^(k)0 + β^(k)1 * X + e^(k) we can see that β^(k)1 is labeled as slope which in this case would represent the beta value.
+
+
+```{r}
+# List of individual stocks
+stocks <- c("AAPL", "GOOG", "MRK", "JNJ", "WMT", "TGT")
+
+# Initialize an empty data frame to store results
+regression_results <- data.frame(Ticker = character(),
+                                 Intercept = numeric(),
+                                 Slope = numeric(),
+                                 Rsquared = numeric(),
+                                 stringsAsFactors = FALSE)
+
+# Loop through each stock and perform regression against SPY
+for(stock in stocks) {
+  
+  # Perform the regression
+  model <- lm(formula(paste(stock, "~ SPY")), data = marketmodel)
+  
+  # Get the summary
+  model_summary <- summary(model)
+  
+  # Extract the results
+  intercept <- model_summary$coefficients["(Intercept)", "Estimate"]
+  slope <- model_summary$coefficients["SPY", "Estimate"]
+  rsquared <- model_summary$r.squared
+  
+  # Append to the results data frame
+  regression_results <- rbind(regression_results, data.frame(Ticker = stock,
+                                                             Intercept = intercept,
+                                                             Slope = slope,
+                                                             Rsquared = rsquared))
+}
+
+# Rename the columns of the regression_results data frame
+names(regression_results) <- c("Stock", "Alpha", "Beta", "R-Squared")
+
+# Print the results table
+print(regression_results)
+```
+
+The table represents all 6 stocks with their alpha (intercept/β^(k)0), the beta (slope/β^(k)1), and the R-Squared value. These stock's values are all derived from the S&P 500 stock index's daily returns and span from the year 2019.
+
+In conclusion using what we know from the video as well as the explanation prior, with the use of the Beta column we are able to tell which of the stocks have the highest and lowest risks in correlation to the market as a whole. The lowest market volatility belongs to the stock labeled WMT (Walmart Inc). The highest market volatility from the selection was AAPL (Apple Inc). While this number holds great value for determining the risk factor relative to the market stocks remain some of the hardest things to predict and while a skill do require more than just one simple number to determine what is and is not a proper investment.
+
+
+
+# Problem 3
+
+```{r}
+spain <- filter(covid, country == "Spain")
+italy <- filter(covid, country == "Italy")
+lm_italy = lm(log(deaths) ~ days_since_first_death, data = italy)
+coef(lm_italy)
+lm_spain = lm(log(deaths) ~ days_since_first_death, data = spain)
+coef(lm_spain)
+```
+
+1.
+The estimated growth rate for Italy is approximately 18.322%. The doubling time is found by dividing the number 70 by the percentage. When doing this we can find that the doubling rate for Italy was `r round(70/18.3218, digits = 3)` days from the first day.
+
+
+2.
+The estimated growth rate for Spain is approximately 27.624%. The doubling time is found by dividing the number 70 by the percentage. When doing this we can find that the doubling rate for Spain was `r round(70/27.62447, digits = 3)` days from the first day.
+
+
+3.
+The following graph details the daily number of fatalities in the two different countries specified above (Spain and Italy):
+
+```{r, echo = FALSE}
+country_colors <- c("Italy" = "forestgreen", "Spain" = "royalblue")
+
+ggplot(covid, aes(x = days_since_first_death, y = deaths, color = country)) + 
+  geom_line() + 
+  labs(x = "Days since First Death", 
+       y = "Deaths", 
+       color = "Country", 
+       title = "Daily Deaths over Time (Italy vs. Spain)") +
+  scale_color_manual(values = country_colors)
+```
+
+
+# Problem 4
+
+```{r}
+lm_milk = lm(log(sales) ~ log(price), data = milk)
+coef(lm_milk)
+```
+
+To obtain the value for the elasticity of milk we must figure the values required via a log-log linear regression model. The estimated elasticity of milk in this data set is `r round(-1.618578, digits = 3)`. This essentially equates to when their is a 1% shift in prices for milk there will be a subsequent reaction of 1.619 in a negative direction when the price goes up and a positive direction when the price goes down in the demand for milk. 
+
+
+
+
