@@ -6,8 +6,10 @@ output:
   html_document:
 ---
 
+[Click here for Github link](https://github.com/leo-rl-1230/HW3)
+
 ```{r setup, include = FALSE, echo = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(ggplot2)
 library(tidyverse)
 library(readxl)
