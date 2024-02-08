@@ -44,42 +44,33 @@ A beta in the stock world is a value which represents the risk behind that of ea
 
 
 ```{r}
-# List of individual stocks
 stocks <- c("AAPL", "GOOG", "MRK", "JNJ", "WMT", "TGT")
 
-# Initialize an empty data frame to store results
-regression_results <- data.frame(Ticker = character(),
+stocks_regression_model <- data.frame(Ticker = character(),
                                  Intercept = numeric(),
                                  Slope = numeric(),
                                  Rsquared = numeric(),
                                  stringsAsFactors = FALSE)
 
-# Loop through each stock and perform regression against SPY
 for(stock in stocks) {
   
-  # Perform the regression
-  model <- lm(formula(paste(stock, "~ SPY")), data = marketmodel)
+  regression_model <- lm(formula(paste(stock, "~ SPY")), data = marketmodel)
   
-  # Get the summary
-  model_summary <- summary(model)
-  
-  # Extract the results
+  model_summary <- summary(regression_model)
+
   intercept <- model_summary$coefficients["(Intercept)", "Estimate"]
   slope <- model_summary$coefficients["SPY", "Estimate"]
   rsquared <- model_summary$r.squared
-  
-  # Append to the results data frame
-  regression_results <- rbind(regression_results, data.frame(Ticker = stock,
+
+  stocks_regression_model <- rbind(stocks_regression_model, data.frame(Ticker = stock,
                                                              Intercept = intercept,
                                                              Slope = slope,
                                                              Rsquared = rsquared))
 }
 
-# Rename the columns of the regression_results data frame
-names(regression_results) <- c("Stock", "Alpha", "Beta", "R-Squared")
+names(stocks_regression_model) <- c("Stock", "Alpha", "Beta", "R-Squared")
 
-# Print the results table
-print(regression_results)
+print(stocks_regression_model)
 ```
 
 The table represents all 6 stocks with their alpha (intercept/β^(k)0), the beta (slope/β^(k)1), and the R-Squared value. These stock's values are all derived from the S&P 500 stock index's daily returns and span from the year 2019.
